@@ -60,7 +60,7 @@ The CLI never reads or uploads your source code. It asks before sharing your fra
 
 ## Docs
 
-Full guides: https://pinsay.dev/docs/ · Issues: https://github.com/moamen-ui/pinsay-cli/issues · support@pinsay.dev
+Full guides: https://pinsay.dev/docs/ · Issues: https://github.com/pinsay-dev/pinsay-cli/issues · support@pinsay.dev
 
 ## Changelog
 

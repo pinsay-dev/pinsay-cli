@@ -1,7 +1,7 @@
 import { ApiError, NetworkError } from './api.js';
 export { NetworkError };
 
-export const ISSUES_URL = 'https://github.com/moamen-ui/pinsay-cli/issues';
+export const ISSUES_URL = 'https://github.com/pinsay-dev/pinsay-cli/issues';
 
 /** "Project <x> not found in workspace <name>." — the project key isn't in the signed-in key's workspace (or doesn't exist). */
 export function projectNotFoundMessage(project: string, workspace?: string): string {

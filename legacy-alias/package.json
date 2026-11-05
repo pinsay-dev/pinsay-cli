@@ -8,7 +8,7 @@
   "homepage": "https://pinsay.dev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/moamen-ui/pinsay-cli.git",
+    "url": "git+https://github.com/pinsay-dev/pinsay-cli.git",
     "directory": "legacy-alias"
   },
   "bin": {
