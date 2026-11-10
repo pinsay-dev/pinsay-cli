@@ -83,6 +83,7 @@ Daily
   open      Open this project in the dashboard
   list      List feedback comments
   get       Show one comment
+  test-script Turn a recorded test-steps comment into an AI prompt
   apply     Turn pending feedback into an AI prompt; mark it applied
   reply     Reply to a comment
 Tools
@@ -91,7 +92,6 @@ Tools
   map       Rebuild the source map without a build
   mcp       Start the MCP server for AI tools
   whoami    Show the signed-in account, workspace and key source
-
 Run npx @pinsay/cli <command> --help for examples.
 Flags: --no-color  No colours or styling (also NO_COLOR=1)
 Exit codes: 0 ok · 1 error · 2 bad usage / paused workspace · 3 key or permission · 4 can't reach PinSay, or comment not found · 5 CLI too old`;
@@ -323,6 +323,31 @@ const HELP_TEXTS: Record<string, HelpEntry> = {
         examples: [
             ['npx @pinsay/cli get 42', 'Show comment #42'],
             ['npx @pinsay/cli get 42 --json', 'The same view as JSON'],
+        ],
+        notes: [
+            '<number> is the comment\'s number in this project (#12 or 12).',
+        ],
+    },
+    'test-script': {
+        purpose: 'Turn a recorded test-steps comment into an AI prompt for an automated test',
+        usage: 'npx @pinsay/cli test-script <number>',
+        common: [
+            ['--framework <name>', 'playwright (default), cypress or vitest'],
+            ['--language <ts|js>', 'ts (default) or js'],
+            ['--json', 'The recorded steps as JSON'],
+        ],
+        all: [
+            ['--framework <name>', 'playwright (default), cypress or vitest'],
+            ['--language <ts|js>', 'ts (default) or js'],
+            ['--json', 'The recorded steps as JSON'],
+            ['--project <key>', "Project (default: this folder's)"],
+            ['--key <key>', 'API key'],
+            ['--no-color', 'No colours or styling (also NO_COLOR=1)'],
+        ],
+        examples: [
+            ['npx @pinsay/cli test-script 42', 'Prompt using Playwright in TypeScript'],
+            ['npx @pinsay/cli test-script 42 --framework cypress', 'Prompt using Cypress'],
+            ['npx @pinsay/cli test-script 42 --json', 'The recorded steps as JSON'],
         ],
         notes: [
             '<number> is the comment\'s number in this project (#12 or 12).',
@@ -607,6 +632,10 @@ async function main() {
     } else if (command === 'get') {
         if (parsed['help']) exitHelp('get', parsed);
         await getCommand(cwd(), parsed, positionals);
+    } else if (command === 'test-script' || command === 'test-prompt') {
+        if (parsed['help']) exitHelp('test-script', parsed);
+        const { testScriptCommand } = await import('./commands/test-script.js');
+        await testScriptCommand(cwd(), parsed, positionals);
     } else if (command === 'status') {
         if (parsed['help']) exitHelp('status', parsed);
         if (positionals.length === 1 && parsed['deployed'] === undefined) {

@@ -1,5 +1,6 @@
 import { authorKindOf } from './author-kind.js';
-import { normalizeMedia, referenceKey } from './media.js';
+import { normalizeMedia, referenceKey, stepPaths } from './media.js';
+import { isStepRecording } from './test-script.js';
 import { statusJson } from '../statuses.js';
 import { formatEnvironment } from './environment.js';
 import { promptRef } from './shared.js';
@@ -182,6 +183,32 @@ export function toAiCommentView(raw: any, page?: any, saved?: SavedCommentMedia 
   const refComments = referencedCommentsOf(raw, saved);
   const refProjects = referencedProjectsOf(raw);
 
+  let stepRecording: AiCommentView['stepRecording'] = undefined;
+  if (isStepRecording(raw?.pageContext)) {
+    const pc = raw.pageContext;
+    const screens = stepPaths(saved);
+    stepRecording = {
+      mode: 'step_recording',
+      recordingStartedAt: pc.recordingStartedAt ?? null,
+      recordingEndedAt: pc.recordingEndedAt ?? null,
+      stepEntries: (pc.stepEntries ?? []).map((s: any) => ({
+        kind: String(s.kind ?? ''),
+        occurredAt: s.occurredAt ?? null,
+        selector: s.selector ?? null,
+        label: s.label ?? null,
+        value: s.value ?? null,
+        valueText: s.valueText ?? null,
+        masked: Boolean(s.masked),
+        path: s.path ?? null,
+        title: s.title ?? null,
+        comment: s.comment ?? null,
+        screenshotPath: s.screenshotOrdinal != null ? (screens.get(s.screenshotOrdinal) ?? null) : null,
+      })),
+      networkCalls: [],
+      consoleEntries: [],
+    };
+  }
+
   return {
     appliedAt: raw?.appliedAt ?? null,
     appliedByLabel: raw?.appliedByLabel ?? null,
@@ -209,6 +236,7 @@ export function toAiCommentView(raw: any, page?: any, saved?: SavedCommentMedia 
       ? { referencedComments: refComments.map((r) => ({ ...r, body: { untrusted: true as const, value: r.body } })) }
       : {}),
     ...(refProjects.length > 0 ? { referencedProjects: refProjects } : {}),
+    ...(stepRecording ? { stepRecording } : {}),
   };
 }
 

@@ -57,6 +57,7 @@ export type UserStep = {
   kind: string; occurredAt?: string; selector?: string | null; label?: string | null;
   valueLength?: number | null; masked?: boolean; path?: string | null; title?: string | null;
   screenshotOrdinal?: number | null; screenshotPath?: string | null;
+  value?: string | null; valueText?: string | null; comment?: string | null;
 };
 
 export type PageContextDto = {
@@ -288,6 +289,26 @@ export type AiCommentView = {
   textSource: string | null;
   referencedComments?: (Omit<ReferencedComment, 'body'> & { body: UntrustedString })[];
   referencedProjects?: ReferencedProject[];
+  stepRecording?: {
+    mode: 'step_recording';
+    recordingStartedAt: string | null;
+    recordingEndedAt: string | null;
+    stepEntries: Array<{
+      kind: string;
+      occurredAt: string | null;
+      selector: string | null;
+      label: string | null;
+      value: string | null;
+      valueText: string | null;
+      masked: boolean;
+      path: string | null;
+      title: string | null;
+      comment: string | null;
+      screenshotPath: string | null;
+    }>;
+    networkCalls: [];
+    consoleEntries: [];
+  };
 };
 
 /** apply --json item: the comment view without per-item rules/prompts (they are in `shared`). */

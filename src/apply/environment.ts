@@ -5,3 +5,8 @@ export function formatEnvironment(env: number | string): string {
   if (env === 3 || env === '3' || String(env).toLowerCase() === 'production' || String(env).toLowerCase() === 'prod') return 'Production';
   return String(env);
 }
+
+export function mapEnvironmentToString(env: number | string | null | undefined): string {
+  if (env == null) return '';
+  return formatEnvironment(env);
+}

@@ -281,6 +281,7 @@ function stepDescription(s: UserStep): string {
       return s.label ? `Clicked "${s.label}"` : `Clicked ${selector}`;
     case 'input':
       if (s.masked) return 'Typed in a masked field';
+      if (!s.masked && s.value != null) return `Typed "${s.value}" in ${selector}`;
       return `Typed ${s.valueLength ?? 0} characters in ${selector}`;
     case 'change':
       if (s.masked) return 'Changed a masked field';
