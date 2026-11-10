@@ -9,6 +9,7 @@ import {
   partitionItem,
   reshapeComment,
   handleGetComment,
+  handleGetStepSequence,
   handleGetQueue,
   handleMarkApplied,
   handleCommitAndMark,
@@ -383,6 +384,82 @@ describe('mcp: tools handlers and helpers', () => {
     } finally {
       await stub.close();
     }
+  });
+
+  describe('pinsay_get_step_sequence', () => {
+    const stepRecordingComment = {
+      id: 977,
+      number: 7,
+      status: 1,
+      environment: 1,
+      body: 'Checkout flow',
+      element: { pageUrl: 'https://example.com/login' },
+      pageContext: {
+        mode: 'step_recording',
+        stepEntries: [
+          { kind: 'input', selector: '#email', value: 'alice@example.com', occurredAt: '2026-11-10T10:00:00.000Z' },
+          {
+            kind: 'click',
+            selector: '#submit',
+            label: 'Submit',
+            comment: 'The order is confirmed',
+            occurredAt: '2026-11-10T10:00:01.000Z',
+          },
+        ],
+      },
+    };
+
+    async function withComment(
+      comment: unknown,
+      fn: (ctx: McpContext) => Promise<void>,
+    ): Promise<void> {
+      const stub = await stubServer((req, res) => {
+        const send = (code: number, data: unknown) => {
+          res.writeHead(code, { 'content-type': 'application/json' });
+          res.end(JSON.stringify({ isSuccess: code === 200, data }));
+        };
+        if (req.url === '/api/projects/test-project/comments/by-number/7') return send(200, { id: 977, number: 7 });
+        if (req.url === '/api/comments/977') return send(200, comment);
+        send(404, null);
+      });
+      try {
+        await fn({ cwd: tmpDir, server: stub.url, project: 'test-project', token: 'jwt-token' });
+      } finally {
+        await stub.close();
+      }
+    }
+
+    test('is listed in the tool catalogue', async () => {
+      const { ALL_TOOLS } = await import('../../src/mcp/schemas.js');
+      assert.ok(ALL_TOOLS.some((t) => t.name === 'pinsay_get_step_sequence'));
+    });
+
+    test('a step recording returns steps with their criteria and the test prompt', async () => {
+      await withComment(stepRecordingComment, async (ctx) => {
+        const res = await handleGetStepSequence({ number: 7 }, ctx);
+        assert.equal(res.untrusted, true);
+        assert.equal(res.steps.length, 2);
+        assert.equal(res.steps[1].comment, 'The order is confirmed');
+        assert.ok(res.prompt.includes('Steps & Acceptance Criteria:'));
+        assert.ok(res.prompt.includes('using Playwright'));
+      });
+    });
+
+    test('a bug recording fails with invalid_input "not a step recording"', async () => {
+      await withComment({ ...stepRecordingComment, pageContext: { url: 'https://example.com/x' } }, async (ctx) => {
+        await assert.rejects(
+          () => handleGetStepSequence({ number: 7 }, ctx),
+          (err: any) => err.code === 'invalid_input' && err.message === 'Comment #7 is not a step recording.',
+        );
+      });
+    });
+
+    test('framework cypress puts "using Cypress" in the prompt', async () => {
+      await withComment(stepRecordingComment, async (ctx) => {
+        const res = await handleGetStepSequence({ number: 7, framework: 'cypress' }, ctx);
+        assert.ok(res.prompt.includes('using Cypress'));
+      });
+    });
   });
 
   test('handleGetComment: resolves the number via by-number and returns number + internalId', async () => {

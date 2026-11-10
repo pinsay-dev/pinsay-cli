@@ -11,6 +11,8 @@ import { toAiCommentView, referencedCommentsOf, referencedProjectsOf } from '../
 import { loadProjectContext } from '../apply/context.js';
 import { deleteCommentMedia, normalizeMedia, pruneMedia, saveIfRooted, stepPaths } from '../apply/media.js';
 import { promptRef, sharedFromApi, sharedFromParts, withExtraRules } from '../apply/shared.js';
+import { buildTestPrompt, buildTestSpec, isStepRecording, type Framework, type Language } from '../apply/test-script.js';
+import { mapEnvironmentToString } from '../apply/environment.js';
 import { fetchMemberRules } from '../apply/member-rules.js';
 import { isStaged, commitAll, headSha, getRemoteUrl, commitUrlFor, getUserEmail } from '../apply/git.js';
 import { findRepoRoot, readConfig, resolveProject, listProjects } from '../config.js';
@@ -469,6 +471,49 @@ export async function handleGetComment(
     if (root) await pruneMedia(root);
     const saved = await saveIfRooted(raw, { root, projectKey: ctx.project, server: ctx.server, token: ctx.token });
     return reshapeComment(raw, raw?.page, saved);
+  } catch (err: any) {
+    if (err instanceof ApiError && err.code === 404) {
+      throw mcpError('not_found', `Comment #${number} not found`);
+    }
+    throw err;
+  }
+}
+
+export async function handleGetStepSequence(
+  args: { number: number; framework?: string; language?: string },
+  ctx: McpContext,
+): Promise<any> {
+  const number = parseCommentNumber(args?.number);
+  if (number === null) {
+    throw mcpError('invalid_input', invalidNumberMessage(args?.number, (args as any)?.id));
+  }
+
+  let id: number;
+  try {
+    const resolved = await fetchCommentByNumber<any>(ctx.server, ctx.token, ctx.project, number);
+    id = resolved.id;
+  } catch (err) {
+    if (err instanceof CommentNotFoundError) {
+      throw mcpError('not_found', err.message);
+    }
+    throw err;
+  }
+
+  try {
+    const raw = await api<any>(ctx.server, `/api/comments/${id}`, {
+      token: ctx.token,
+    });
+    const root = typeof ctx.cwd === 'string' && ctx.cwd ? ctx.cwd : undefined;
+    if (root) await pruneMedia(root);
+    const saved = await saveIfRooted(raw, { root, projectKey: ctx.project, server: ctx.server, token: ctx.token });
+    if (!isStepRecording(raw?.pageContext)) {
+      // mcpError only accepts a fixed set of codes; a bug recording is invalid input for this tool.
+      throw mcpError('invalid_input', `Comment #${number} is not a step recording.`);
+    }
+    const framework = (args.framework ?? 'playwright') as Framework;
+    const language = (args.language ?? 'ts') as Language;
+    const spec = buildTestSpec(raw, stepPaths(saved), framework, language, mapEnvironmentToString(raw.environment));
+    return { ...spec, untrusted: true, prompt: buildTestPrompt(spec) };
   } catch (err: any) {
     if (err instanceof ApiError && err.code === 404) {
       throw mcpError('not_found', `Comment #${number} not found`);
@@ -940,6 +985,7 @@ const PROJECT_SCOPED_TOOLS = new Set([
   'pinsay_list_comments',
   'pinsay_get_queue',
   'pinsay_get_comment',
+  'pinsay_get_step_sequence',
   'pinsay_mark_applied',
   'pinsay_commit_and_mark',
   'pinsay_reply',
@@ -998,6 +1044,8 @@ export async function executeTool(
       return handleGetQueue(args, effectiveCtx);
     case 'pinsay_get_comment':
       return handleGetComment(args, effectiveCtx);
+    case 'pinsay_get_step_sequence':
+      return handleGetStepSequence(args, effectiveCtx);
     case 'pinsay_mark_applied':
       return handleMarkApplied(args, effectiveCtx);
     case 'pinsay_commit_and_mark':

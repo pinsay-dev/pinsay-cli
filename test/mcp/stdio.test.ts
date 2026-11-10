@@ -76,7 +76,7 @@ test('mcp stdio: spawn node dist/cli.js mcp, initialize, tools/list, tools/call'
   try {
     await client.connect(transport);
 
-    // 1. tools/list: assert all 10 tool names
+    // 1. tools/list: assert all 11 tool names
     const toolsResult = await client.listTools();
     const toolNames = toolsResult.tools.map((t) => t.name).sort();
     assert.deepEqual(toolNames, [
@@ -84,6 +84,7 @@ test('mcp stdio: spawn node dist/cli.js mcp, initialize, tools/list, tools/call'
       'pinsay_doctor',
       'pinsay_get_comment',
       'pinsay_get_queue',
+      'pinsay_get_step_sequence',
       'pinsay_list_comments',
       'pinsay_list_projects',
       'pinsay_mark_applied',

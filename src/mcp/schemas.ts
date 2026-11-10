@@ -116,6 +116,27 @@ export const TOOL_PINSAY_GET_COMMENT = {
   },
 } as const;
 
+export const TOOL_PINSAY_GET_STEP_SEQUENCE = {
+  name: 'pinsay_get_step_sequence',
+  description:
+    `Get a recorded test-steps comment (made with the widget's Record → Test steps) as a test specification: ` +
+    `the scenario, starting URL, environment, and each step (action, selector, label, value — masked fields have ` +
+    `none, use an environment variable — saved screenshot path, and the tester's acceptance criteria), plus a ready ` +
+    `prompt to write an automated test. \`framework\`: playwright (default), cypress or vitest; \`language\`: ts ` +
+    `(default) or js. Fails with invalid_input (\"not a step recording\") for any other comment. ${UNTRUSTED_NOTICE}`,
+  inputSchema: {
+    type: 'object',
+    properties: {
+      number: { type: 'integer', minimum: 1, description: 'The comment\'s number in its project (#12 → 12).' },
+      project: { type: 'string', description: PROJECT_ARG_DESCRIPTION },
+      framework: { type: 'string', enum: ['playwright', 'cypress', 'vitest'] },
+      language: { type: 'string', enum: ['ts', 'js'] },
+    },
+    required: ['number'],
+    additionalProperties: false,
+  },
+} as const;
+
 const MODELS_NOTICE =
   'Pass `models` with EVERY model that touched the item and its role (planner/reviewer = your own id, ' +
   'implementer = each worker model you delegated to), using exact model ids, not aliases.';
@@ -360,6 +381,7 @@ export const ALL_TOOLS = [
   TOOL_PINSAY_LIST_COMMENTS,
   TOOL_PINSAY_GET_QUEUE,
   TOOL_PINSAY_GET_COMMENT,
+  TOOL_PINSAY_GET_STEP_SEQUENCE,
   TOOL_PINSAY_MARK_APPLIED,
   TOOL_PINSAY_COMMIT_AND_MARK,
   TOOL_PINSAY_REPLY,
@@ -380,6 +402,9 @@ export const SAMPLE_INPUTS: Record<string, Record<string, any>> = {
     environment: 'local',
   },
   pinsay_get_comment: {
+    number: 12,
+  },
+  pinsay_get_step_sequence: {
     number: 12,
   },
   pinsay_mark_applied: {

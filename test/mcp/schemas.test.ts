@@ -15,13 +15,14 @@ import {
   TOOL_PINSAY_SET_STATUS,
 } from '../../src/mcp/schemas.js';
 
-test('mcp: tools catalogue matches exactly the 10 frozen names', () => {
+test('mcp: tools catalogue matches exactly the 11 frozen names', () => {
   const names = ALL_TOOLS.map((t) => t.name).sort();
   assert.deepEqual(names, [
     'pinsay_commit_and_mark',
     'pinsay_doctor',
     'pinsay_get_comment',
     'pinsay_get_queue',
+    'pinsay_get_step_sequence',
     'pinsay_list_comments',
     'pinsay_list_projects',
     'pinsay_mark_applied',
