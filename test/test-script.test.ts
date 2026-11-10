@@ -420,3 +420,7 @@ test('stepDescription and apply prompt: step recording renders "Recorded test st
     'bug recording must not render Recorded test steps',
   );
 });
+test('stepAction: masked change step names no selector', () => {
+  assert.equal(stepAction({ kind: 'change', selector: null, masked: true }), 'Choose in a masked field');
+  assert.equal(stepAction({ kind: 'change', selector: '#plan', masked: false }), "Choose in '#plan'");
+});

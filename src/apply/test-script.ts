@@ -75,6 +75,7 @@ export function stepAction(s: {
       if (s.masked) return `Type into a masked field '${s.selector ?? 'masked'}'`;
       return `Type text into '${selector}'`;
     case 'change':
+      if (s.masked) return 'Choose in a masked field';
       return `Choose in '${selector}'`;
     case 'route':
       return `Navigate to '${s.path ?? ''}'`;
