@@ -72,7 +72,7 @@ export function stepAction(s: {
       if (s.masked) return 'Click a masked element';
       return `Click element '${selector}'${s.label ? ` (Label: '${s.label}')` : ''}`;
     case 'input':
-      if (s.masked) return `Type into a masked field '${s.selector ?? 'masked'}'`;
+      if (s.masked) return s.selector ? `Type into a masked field '${s.selector}'` : 'Type into a masked field';
       return `Type text into '${selector}'`;
     case 'change':
       if (s.masked) return 'Choose in a masked field';
