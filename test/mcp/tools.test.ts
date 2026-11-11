@@ -434,9 +434,28 @@ describe('mcp: tools handlers and helpers', () => {
       assert.ok(ALL_TOOLS.some((t) => t.name === 'pinsay_get_step_sequence'));
     });
 
-    test('a step recording returns steps with their criteria and the test prompt', async () => {
+    test('no args: the plain agent prompt', async () => {
       await withComment(stepRecordingComment, async (ctx) => {
         const res = await handleGetStepSequence({ number: 7 }, ctx);
+        assert.equal(res.target, 'agent');
+        assert.ok(res.prompt.includes('Workflow steps:'));
+      });
+    });
+
+    test('target test: the test prompt; target guide with framework is invalid_input', async () => {
+      await withComment(stepRecordingComment, async (ctx) => {
+        const res = await handleGetStepSequence({ number: 7, target: 'test' }, ctx);
+        assert.ok(res.prompt.includes('Steps & Acceptance Criteria:'));
+        await assert.rejects(
+          () => handleGetStepSequence({ number: 7, target: 'guide', framework: 'cypress' }, ctx),
+          (err: any) => /invalid_input/.test(JSON.stringify(err)) || err?.code === 'invalid_input' || /only apply/.test(String(err?.message)),
+        );
+      });
+    });
+
+    test('a step recording returns steps with their criteria and the test prompt', async () => {
+      await withComment(stepRecordingComment, async (ctx) => {
+        const res = await handleGetStepSequence({ number: 7, target: 'test' }, ctx);
         assert.equal(res.untrusted, true);
         assert.equal(res.steps.length, 2);
         assert.equal(res.steps[1].comment, 'The order is confirmed');

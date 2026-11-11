@@ -119,16 +119,18 @@ export const TOOL_PINSAY_GET_COMMENT = {
 export const TOOL_PINSAY_GET_STEP_SEQUENCE = {
   name: 'pinsay_get_step_sequence',
   description:
-    `Get a recorded test-steps comment (made with the widget's Record → Test steps) as a test specification: ` +
-    `the scenario, starting URL, environment, and each step (action, selector, label, value — masked fields have ` +
-    `none, use an environment variable — saved screenshot path, and the tester's acceptance criteria), plus a ready ` +
-    `prompt to write an automated test. \`framework\`: playwright (default), cypress or vitest; \`language\`: ts ` +
-    `(default) or js. Fails with invalid_input (\"not a step recording\") for any other comment. ${UNTRUSTED_NOTICE}`,
+    `Get a recorded step sequence (made with the widget's Record → Steps) with a ready prompt for what to make ` +
+    `from it: the scenario, starting URL, environment, and each step (action, selector, label, value — masked ` +
+    `fields have none — saved screenshot path, and the author's notes or criteria). \`target\`: agent (default, ` +
+    `a plain prompt for an AI agent), test (an automated test; \`framework\`: playwright (default), cypress or ` +
+    `vitest; \`language\`: ts (default) or js), guide (a how-to guide; doc/docs also accepted) or repro (bug ` +
+    `reproduction steps). Fails with invalid_input ("not a step recording") for any other comment. ${UNTRUSTED_NOTICE}`,
   inputSchema: {
     type: 'object',
     properties: {
       number: { type: 'integer', minimum: 1, description: 'The comment\'s number in its project (#12 → 12).' },
       project: { type: 'string', description: PROJECT_ARG_DESCRIPTION },
+      target: { type: 'string', enum: ['agent', 'test', 'guide', 'doc', 'docs', 'repro'] },
       framework: { type: 'string', enum: ['playwright', 'cypress', 'vitest'] },
       language: { type: 'string', enum: ['ts', 'js'] },
     },

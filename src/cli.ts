@@ -83,7 +83,7 @@ Daily
   open      Open this project in the dashboard
   list      List feedback comments
   get       Show one comment
-  test-script Turn a recorded test-steps comment into an AI prompt
+  steps     Turn a recorded step sequence into an AI prompt (test, guide, repro, agent)
   apply     Turn pending feedback into an AI prompt; mark it applied
   reply     Reply to a comment
 Tools
@@ -328,26 +328,28 @@ const HELP_TEXTS: Record<string, HelpEntry> = {
             '<number> is the comment\'s number in this project (#12 or 12).',
         ],
     },
-    'test-script': {
-        purpose: 'Turn a recorded test-steps comment into an AI prompt for an automated test',
-        usage: 'npx @pinsay/cli test-script <number>',
+    steps: {
+        purpose: 'Turn a recorded step sequence into an AI prompt (test, guide, repro, agent)',
+        usage: 'npx @pinsay/cli steps <number>',
         common: [
-            ['--framework <name>', 'playwright (default), cypress or vitest'],
-            ['--language <ts|js>', 'ts (default) or js'],
+            ['--target <name>', 'agent (default), test, guide or repro'],
+            ['--framework <name>', 'For test: playwright (default), cypress, vitest'],
+            ['--language <ts|js>', 'For test: ts (default) or js'],
             ['--json', 'The recorded steps as JSON'],
         ],
         all: [
-            ['--framework <name>', 'playwright (default), cypress or vitest'],
-            ['--language <ts|js>', 'ts (default) or js'],
+            ['--target <name>', 'agent (default), test, guide or repro'],
+            ['--framework <name>', 'For test: playwright (default), cypress, vitest'],
+            ['--language <ts|js>', 'For test: ts (default) or js'],
             ['--json', 'The recorded steps as JSON'],
             ['--project <key>', "Project (default: this folder's)"],
             ['--key <key>', 'API key'],
             ['--no-color', 'No colours or styling (also NO_COLOR=1)'],
         ],
         examples: [
-            ['npx @pinsay/cli test-script 42', 'Prompt using Playwright in TypeScript'],
-            ['npx @pinsay/cli test-script 42 --framework cypress', 'Prompt using Cypress'],
-            ['npx @pinsay/cli test-script 42 --json', 'The recorded steps as JSON'],
+            ['npx @pinsay/cli steps 42', 'A plain prompt for your AI agent'],
+            ['npx @pinsay/cli steps 42 --target test', 'An automated test (Playwright, TS)'],
+            ['npx @pinsay/cli steps 42 --target guide', 'A how-to guide'],
         ],
         notes: [
             '<number> is the comment\'s number in this project (#12 or 12).',
@@ -632,10 +634,10 @@ async function main() {
     } else if (command === 'get') {
         if (parsed['help']) exitHelp('get', parsed);
         await getCommand(cwd(), parsed, positionals);
-    } else if (command === 'test-script' || command === 'test-prompt') {
-        if (parsed['help']) exitHelp('test-script', parsed);
-        const { testScriptCommand } = await import('./commands/test-script.js');
-        await testScriptCommand(cwd(), parsed, positionals);
+    } else if (command === 'steps') {
+        if (parsed['help']) exitHelp('steps', parsed);
+        const { stepsCommand } = await import('./commands/steps.js');
+        await stepsCommand(cwd(), parsed, positionals);
     } else if (command === 'status') {
         if (parsed['help']) exitHelp('status', parsed);
         if (positionals.length === 1 && parsed['deployed'] === undefined) {

@@ -26,6 +26,7 @@ npx @pinsay/cli init
 | `npx @pinsay/cli status` | Who you are, this folder's project, comments waiting |
 | `npx @pinsay/cli open` | Open this project in the dashboard |
 | `npx @pinsay/cli list` / `get <id>` | List pending feedback; inspect one comment |
+| `npx @pinsay/cli steps <number>` | Turn a recorded step sequence into a prompt: a plain agent prompt (default), an automated test, a how-to guide or bug reproduction steps |
 | `npx @pinsay/cli apply` | Generate the fix-it prompt for your AI tool, then record what changed |
 | `npx @pinsay/cli apply --plan` | Preview proposed edits without touching code |
 | `npx @pinsay/cli apply --mark <id> --reply "..."` | Mark comment(s) applied, with the commit URL |

@@ -11,7 +11,7 @@ import { toAiCommentView, referencedCommentsOf, referencedProjectsOf } from '../
 import { loadProjectContext } from '../apply/context.js';
 import { deleteCommentMedia, normalizeMedia, pruneMedia, saveIfRooted, stepPaths } from '../apply/media.js';
 import { promptRef, sharedFromApi, sharedFromParts, withExtraRules } from '../apply/shared.js';
-import { buildTestPrompt, buildTestSpec, isStepRecording, type Framework, type Language } from '../apply/test-script.js';
+import { buildStepPrompt, buildStepSpec, isStepRecording, parseTarget, DEFAULT_TARGET, type Framework, type Language, type Target } from '../apply/steps.js';
 import { mapEnvironmentToString } from '../apply/environment.js';
 import { fetchMemberRules } from '../apply/member-rules.js';
 import { isStaged, commitAll, headSha, getRemoteUrl, commitUrlFor, getUserEmail } from '../apply/git.js';
@@ -480,7 +480,7 @@ export async function handleGetComment(
 }
 
 export async function handleGetStepSequence(
-  args: { number: number; framework?: string; language?: string },
+  args: { number: number; target?: string; framework?: string; language?: string },
   ctx: McpContext,
 ): Promise<any> {
   const number = parseCommentNumber(args?.number);
@@ -510,10 +510,14 @@ export async function handleGetStepSequence(
       // mcpError only accepts a fixed set of codes; a bug recording is invalid input for this tool.
       throw mcpError('invalid_input', `Comment #${number} is not a step recording.`);
     }
+    const fwGiven = args.framework !== undefined || args.language !== undefined;
+    let target: Target = args.target === undefined ? (fwGiven ? 'test' : DEFAULT_TARGET) : (parseTarget(String(args.target)) as Target);
+    if (!target) throw mcpError('invalid_input', `Unknown target "${args.target}" (use agent, test, guide or repro).`);
+    if (fwGiven && target !== 'test') throw mcpError('invalid_input', 'framework and language only apply to target test.');
     const framework = (args.framework ?? 'playwright') as Framework;
     const language = (args.language ?? 'ts') as Language;
-    const spec = buildTestSpec(raw, stepPaths(saved), framework, language, mapEnvironmentToString(raw.environment));
-    return { ...spec, untrusted: true, prompt: buildTestPrompt(spec) };
+    const spec = buildStepSpec(raw, stepPaths(saved), target, mapEnvironmentToString(raw.environment), framework, language);
+    return { ...spec, untrusted: true, prompt: buildStepPrompt(spec) };
   } catch (err: any) {
     if (err instanceof ApiError && err.code === 404) {
       throw mcpError('not_found', `Comment #${number} not found`);

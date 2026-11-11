@@ -8,7 +8,7 @@ const cliPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../d
 
 const COMMANDS = [
   'init', 'embed', 'login', 'logout', 'remove', 'status', 'open', 'list',
-  'get', 'test-script', 'apply', 'reply', 'doctor', 'update', 'map', 'mcp', 'whoami',
+  'get', 'steps', 'apply', 'reply', 'doctor', 'update', 'map', 'mcp', 'whoami',
 ];
 
 function run(args: string[]) {

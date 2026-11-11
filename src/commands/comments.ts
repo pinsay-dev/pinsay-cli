@@ -6,7 +6,7 @@ import { resolveToken, readApiKey } from '../auth.js';
 import { authorKindOf, visitorTag } from '../apply/author-kind.js';
 import { toAiCommentView } from '../apply/projection.js';
 import { pruneMedia, saveIfRooted, stepPaths } from '../apply/media.js';
-import { formatStepRecordingSection } from '../apply/test-script.js';
+import { formatStepRecordingSection } from '../apply/steps.js';
 import type { AiCommentView, AiMediaView } from '../apply/types.js';
 import { resolveServer } from '../server.js';
 import { externalIssueTag } from '../lib/external-issue.js';

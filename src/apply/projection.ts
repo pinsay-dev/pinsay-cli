@@ -1,6 +1,6 @@
 import { authorKindOf } from './author-kind.js';
 import { normalizeMedia, referenceKey, stepPaths } from './media.js';
-import { isStepRecording } from './test-script.js';
+import { isStepRecording } from './steps.js';
 import { statusJson } from '../statuses.js';
 import { formatEnvironment } from './environment.js';
 import { promptRef } from './shared.js';

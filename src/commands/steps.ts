@@ -5,19 +5,39 @@ import { mapEnvironmentToString } from '../apply/environment.js';
 import {
   type Framework,
   type Language,
+  type Target,
+  DEFAULT_TARGET,
+  parseTarget,
   isStepRecording,
-  buildTestSpec,
-  buildTestPrompt,
-} from '../apply/test-script.js';
+  buildStepSpec,
+  buildStepPrompt,
+} from '../apply/steps.js';
 
-export async function testScriptCommand(
+export async function stepsCommand(
   cwd: string,
   parsed: Record<string, string | boolean>,
   positionals: string[] = [],
 ): Promise<void> {
   if (Object.keys(parsed).some((key) => /^--id(=|$)/.test(`--${key}`))) {
-    console.error("--id was removed: pass the comment's number, e.g. npx @pinsay/cli test-script 12 (internal ids are not accepted).");
+    console.error("--id was removed: pass the comment's number, e.g. npx @pinsay/cli steps 12 (internal ids are not accepted).");
     process.exit(2);
+  }
+
+  const fwGiven = parsed['framework'] !== undefined || parsed['language'] !== undefined;
+  let target: Target = DEFAULT_TARGET;
+  if (parsed['target'] !== undefined) {
+    const t = parseTarget(String(parsed['target']));
+    if (!t) {
+      console.error(`Unknown --target "${parsed['target']}" (use agent, test, guide or repro).`);
+      process.exit(2);
+    }
+    if (fwGiven && t !== 'test') {
+      console.error('--framework and --language only apply to --target test.');
+      process.exit(2);
+    }
+    target = t;
+  } else if (fwGiven) {
+    target = 'test';
   }
 
   let framework: Framework = 'playwright';
@@ -43,7 +63,7 @@ export async function testScriptCommand(
   const { server, token, project, root } = await getClient(cwd, parsed, { requireProject: true });
   const numStr = positionals[1] || (typeof parsed['number'] === 'string' ? parsed['number'] : undefined);
   if (!numStr) {
-    console.error('Usage: pinsay test-script <number>');
+    console.error('Usage: pinsay steps <number> [--target agent|test|guide|repro]');
     process.exit(2);
   }
 
@@ -74,13 +94,13 @@ export async function testScriptCommand(
 
   const screens = stepPaths(saved);
   const environment = mapEnvironmentToString(raw.environment);
-  const spec = buildTestSpec(raw, screens, framework, language, environment);
+  const spec = buildStepSpec(raw, screens, target, environment, framework, language);
 
   if (parsed['json'] === true) {
     console.log(JSON.stringify(spec, null, 2));
     process.exit(0);
   }
 
-  console.log(buildTestPrompt(spec));
+  console.log(buildStepPrompt(spec));
   process.exit(0);
 }
