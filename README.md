@@ -65,6 +65,11 @@ Full guides: https://pinsay.dev/docs/ · Issues: https://github.com/pinsay-dev/p
 
 ## Changelog
 
+### 1.1.0
+
+- New `pinsay steps` command: turns a recorded step sequence (Record → Steps) into a prompt for your AI tool, with four targets (`--target agent|test|guide|repro`; default `agent`, a plain agent prompt; `--framework` and `--language` apply to `test`). The MCP tool `pinsay_get_step_sequence` takes the same `target`.
+- **Removed:** `pinsay test-script` and `pinsay test-prompt` (no alias). Use `pinsay steps` instead; the old names now answer "Unknown command".
+
 ### 0.17.0
 
 - Figma: a frame the Figma plugin attached to a comment (or a reply) now reaches the apply prompt — file key, node id and link, plus the frame's generated HTML + Tailwind and HTML + CSS blocks when the plugin sent its specs v2, each fenced as untrusted data. The prompt tells your agent to inspect the design first when it has a Figma MCP tool, and otherwise the attached screenshot and DOM snapshot.
